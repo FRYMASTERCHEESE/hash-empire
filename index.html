@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Hash Empire</title>
+<style>
+:root{--bg:#1a2332;--card:#243044;--card2:#2c3a50;--accent:#00b4d8;--green:#2ecc71;--orange:#f39c12;--purple:#9b59b6;--text:#ecf0f1;--muted:#95a5a6;--border:#34495e}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#0f1620;color:var(--text);min-height:100vh;overflow-x:hidden}
+.app{max-width:420px;margin:0 auto;min-height:100vh;background:linear-gradient(180deg,#1a2332 0%,#121a26 100%);padding-bottom:85px;position:relative}
+
+/* Top bar */
+.topbar{background:#0d1219;padding:10px 12px 8px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #1e2a3a}
+.currencies{display:flex;gap:10px;flex-wrap:wrap}
+.cur{display:flex;align-items:center;gap:4px;font-size:13px;font-weight:700}
+.cur span{opacity:.7;font-size:11px}
+.top-icons{display:flex;gap:8px}
+.top-icons button{background:#1e2a3a;border:none;width:32px;height:32px;border-radius:8px;color:#fff;font-size:14px}
+
+/* Prestige / rates panel */
+.rates-panel{background:linear-gradient(180deg,#1e3a5f 0%,#16304f 100%);margin:10px 10px 0;border-radius:12px;padding:10px;border:1px solid #2a4a6a}
+.rates-header{display:flex;justify-content:space-between;font-size:11px;color:#7fdbff;margin-bottom:8px}
+.rates-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.rate-box{background:rgba(0,0,0,.25);border-radius:8px;padding:8px;text-align:center}
+.rate-box .coin-name{font-size:12px;font-weight:700;margin-bottom:2px}
+.rate-box .rate{font-size:11px;color:#a0d2ff}
+.rate-box .amount{font-size:14px;font-weight:800;margin-top:2px}
+.prestige-side{background:rgba(155,89,182,.15);border-radius:8px;padding:6px;margin-top:8px;font-size:11px;text-align:center;color:#d2a8ff}
+
+/* Mining room */
+.mining-room{margin:12px 10px;background:linear-gradient(180deg,#2c3e50 0%,#1a252f 100%);border-radius:14px;padding:12px;border:1px solid #3d5166;position:relative;overflow:hidden;min-height:180px}
+.room-bg{position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent,transparent 40px,rgba(0,0,0,.03) 40px,rgba(0,0,0,.03) 41px);pointer-events:none}
+.miners-row{display:flex;justify-content:center;gap:4px;margin:10px 0;flex-wrap:wrap;position:relative;z-index:1}
+.miner{width:48px;height:56px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end}
+.miner-head{width:28px;height:28px;border-radius:50%;background:#f5d0a9;border:2px solid #e0b88a;display:flex;align-items:center;justify-content:center;font-size:14px;position:relative}
+.miner-hat{position:absolute;top:-8px;font-size:16px}
+.miner-body{width:32px;height:22px;background:#3498db;border-radius:4px 4px 0 0;margin-top:-2px}
+.miner.active .miner-head{animation:bob 1.2s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+.manager{position:absolute;right:12px;bottom:50px;text-align:center;z-index:2}
+.manager-avatar{width:40px;height:40px;border-radius:50%;background:#e8c39e;border:2px solid #d4a574;display:flex;align-items:center;justify-content:center;font-size:20px;margin:0 auto}
+.desk-row{display:flex;justify-content:center;gap:8px;margin-top:4px;position:relative;z-index:1}
+.desk{width:36px;height:14px;background:#5d4e37;border-radius:3px}
+
+/* Player center */
+.player-center{text-align:center;margin:8px 0 4px;position:relative;z-index:2}
+.player-avatar{width:70px;height:70px;border-radius:50%;background:linear-gradient(145deg,#2c3e50,#1a252f);border:3px solid #00b4d8;display:flex;align-items:center;justify-content:center;font-size:36px;margin:0 auto;box-shadow:0 0 20px rgba(0,180,216,.4)}
+.player-name{font-size:15px;font-weight:700;margin-top:6px}
+.player-name input{background:transparent;border:none;color:#fff;font-size:15px;font-weight:700;text-align:center;width:140px;outline:none}
+.player-level{font-size:12px;color:var(--muted);margin-top:2px}
+.xp-wrap{margin:8px 20px 0}
+.xp-bar{height:8px;background:#1a252f;border-radius:4px;overflow:hidden}
+.xp-fill{height:100%;background:linear-gradient(90deg,#00b4d8,#9b59b6);border-radius:4px;transition:width .3s}
+.xp-text{font-size:10px;color:var(--muted);text-align:center;margin-top:3px}
+
+/* Action buttons under room */
+.action-row{display:flex;gap:8px;margin:10px;flex-wrap:wrap}
+.action-btn{flex:1;min-width:100px;padding:12px 8px;border:none;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;color:#fff}
+.btn-upgrade{background:linear-gradient(135deg,#00b4d8,#0077a8)}
+.btn-hire{background:linear-gradient(135deg,#9b59b6,#6c3483)}
+.btn-prestige{background:linear-gradient(135deg,#e67e22,#d35400)}
+.action-btn:disabled{opacity:.45}
+
+/* Bottom nav */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:#0d1219;border-top:1px solid #1e2a3a;display:flex;justify-content:space-around;padding:8px 4px 16px;max-width:420px;margin:0 auto;z-index:50}
+.nav-btn{background:none;border:none;color:#7f8c8d;font-size:10px;display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 8px}
+.nav-btn.active{color:#00b4d8}
+.nav-btn span{font-size:20px}
+
+/* Modals */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.75);display:none;align-items:center;justify-content:center;z-index:100;padding:16px}
+.modal-bg.show{display:flex}
+.modal{background:#1a2332;border-radius:16px;padding:18px;width:100%;max-width:360px;max-height:80vh;overflow-y:auto;border:1px solid #2c3e50}
+.modal h2{font-size:17px;margin-bottom:12px}
+.modal p{font-size:13px;color:#95a5a6;margin-bottom:8px;line-height:1.4}
+.modal-close{width:100%;padding:12px;border:none;border-radius:10px;background:#2c3e50;color:#fff;font-weight:600;margin-top:12px;cursor:pointer}
+.shop-item{background:#243044;border-radius:10px;padding:12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.shop-item .si-info{flex:1}
+.shop-item .si-name{font-weight:700;font-size:14px}
+.shop-item .si-desc{font-size:11px;color:#95a5a6}
+.shop-item button{padding:8px 12px;border:none;border-radius:8px;background:linear-gradient(135deg,#2ecc71,#27ae60);color:#000;font-weight:800;font-size:12px;white-space:nowrap;cursor:pointer}
+.shop-item button.crypto{background:linear-gradient(135deg,#f39c12,#e67e22)}
+.shop-item button:disabled{background:#3d5166;color:#7f8c8d}
+.toast{position:fixed;top:16px;left:50%;transform:translateX(-50%) translateY(-80px);background:#243044;border:1px solid #00b4d8;padding:10px 16px;border-radius:10px;font-size:13px;font-weight:600;z-index:200;transition:transform .3s;max-width:90%;text-align:center}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.notice{background:rgba(243,156,18,.15);border:1px solid rgba(243,156,18,.4);border-radius:8px;padding:8px;font-size:11px;color:#f39c12;margin-bottom:10px;line-height:1.3}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- Top currencies -->
+  <div class="topbar">
+    <div class="currencies">
+      <div class="cur" id="topDoge">Ð <span id="dogeAmt">0</span></div>
+      <div class="cur" id="topUsdt">₮ <span id="usdtAmt">0</span></div>
+      <div class="cur" id="topEth">Ξ <span id="ethAmt">0</span></div>
+      <div class="cur" id="topBtc">₿ <span id="btcAmt">0</span></div>
+    </div>
+    <div class="top-icons">
+      <button onclick="openModal('settings')">⚙️</button>
+    </div>
+  </div>
+
+  <!-- Rates panel -->
+  <div class="rates-panel">
+    <div class="rates-header">
+      <span>Mining Rates</span>
+      <span id="totalRate">$0/min</span>
+    </div>
+    <div class="rates-grid" id="ratesGrid"></div>
+    <div class="prestige-side">Prestige Mult: <strong id="multDisplay">x1.00</strong> • PP: <strong id="ppDisplay">0</strong></div>
+  </div>
+
+  <!-- Mining Room -->
+  <div class="mining-room">
+    <div class="room-bg"></div>
+    <div class="miners-row" id="minersRow"></div>
+    <div class="desk-row" id="deskRow"></div>
+    <div class="manager">
+      <div class="manager-avatar">👔</div>
+      <div style="font-size:9px;color:#95a5a6;margin-top:2px">Boss</div>
+    </div>
+
+    <div class="player-center">
+      <div class="player-avatar" id="playerAvatar">😎</div>
+      <div class="player-name"><input type="text" id="playerName" value="CryptoBoss" maxlength="12" onchange="saveName()"></div>
+      <div class="player-level">Level <span id="playerLevel">1</span></div>
+      <div class="xp-wrap">
+        <div class="xp-bar"><div class="xp-fill" id="xpFill" style="width:0%"></div></div>
+        <div class="xp-text" id="xpText">0 / 100 XP</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Action buttons -->
+  <div class="action-row">
+    <button class="action-btn btn-upgrade" onclick="upgradeAll()">⚡ Upgrade All</button>
+    <button class="action-btn btn-hire" id="hireBtn" onclick="hireWorker()">👷 Hire Miner</button>
+  </div>
+  <div class="action-row" style="margin-top:0">
+    <button class="action-btn btn-prestige" id="prestigeBtn" onclick="doPrestige()" disabled>🚀 Prestige</button>
+  </div>
+  <div style="text-align:center;font-size:11px;color:#7f8c8d;margin:4px 10px" id="hireInfo">Hire miners to boost speed</div>
+</div>
+
+<!-- Bottom nav -->
+<div class="bottom-nav">
+  <button class="nav-btn active" onclick="showToast('Home')"><span>🏠</span>Home</button>
+  <button class="nav-btn" onclick="openModal('shop')"><span>🛒</span>Shop</button>
+  <button class="nav-btn" onclick="openModal('codes')"><span>🎟️</span>Codes</button>
+  <button class="nav-btn" onclick="openModal('upgrade')"><span>⬆️</span>Upgrade</button>
+  <button class="nav-btn" onclick="openModal('about')"><span>ℹ️</span>Info</button>
+</div>
+
+<div class="modal-bg" id="modalBg" onclick="closeModal(event)"><div class="modal" id="modalBox"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const COINS=[
+  {id:'doge',name:'DOGE',icon:'Ð',color:'#c2a633',baseRate:1.5,amount:0,level:0,baseCost:10},
+  {id:'usdt',name:'USDT',icon:'₮',color:'#26a17b',baseRate:0.6,amount:0,level:0,baseCost:30},
+  {id:'eth',name:'ETH',icon:'Ξ',color:'#627eea',baseRate:0.25,amount:0,level:0,baseCost:90},
+  {id:'btc',name:'BTC',icon:'₿',color:'#f7931a',baseRate:0.1,amount:0,level:0,baseCost:350}
+];
+const PROMO_CODES={
+  'HASHSTART':{action:s=>s.coins.forEach(c=>c.amount+=100)},
+  'WELCOME':{action:s=>{s.coins[0].amount+=400;s.workers+=2}},
+  'MINER2026':{action:s=>s.coins.forEach(c=>c.amount+=1000)},
+  'DOGEKING':{action:s=>s.coins[0].amount+=4000},
+  'BTCHAUL':{action:s=>s.coins[3].amount+=100},
+  'PRESTIGE':{action:s=>s.prestigePoints+=5},
+  'TEAMWORK':{action:s=>s.workers+=6},
+  'EMPIRE':{action:s=>{s.coins.forEach(c=>c.amount+=2000);s.prestigePoints+=4}},
+  'SECRET':{action:s=>{s.coins.forEach(c=>c.amount+=500);s.workers+=4}},
+  'FRYMASTER':{action:s=>{s.workers+=12;s.coins.forEach(c=>c.amount+=3000)}}
+};
+const IAP=[
+  {id:'s1',name:'Starter Pack',desc:'10K each coin + 10 workers',price:'$4.99',val:4.99,effect:s=>{s.coins.forEach(c=>c.amount+=10000);s.workers+=10}},
+  {id:'s2',name:'Miner Pack',desc:'25 workers + 50K DOGE',price:'$9.99',val:9.99,effect:s=>{s.workers+=25;s.coins[0].amount+=50000}},
+  {id:'s3',name:'Speed Boost',desc:'+35% permanent speed',price:'$14.99',val:14.99,effect:s=>{s.shopMult+=0.35}},
+  {id:'s4',name:'Whale Pack',desc:'200K all + 50 workers + 25 PP',price:'$29.99',val:29.99,best:true,effect:s=>{s.coins.forEach(c=>c.amount+=200000);s.workers+=50;s.prestigePoints+=25}},
+  {id:'s5',name:'Empire Pack',desc:'1M all + 80 workers + VIP',price:'$79.99',val:79.99,effect:s=>{s.coins.forEach(c=>c.amount+=1000000);s.workers+=80;s.prestigePoints+=60;s.shopMult+=0.25;s.isVip=true}},
+  {id:'s6',name:'Legendary',desc:'5M all + 150 workers + +70% speed',price:'$149.99',val:149.99,effect:s=>{s.coins.forEach(c=>c.amount+=5000000);s.workers+=150;s.prestigePoints+=150;s.shopMult+=0.70;s.isVip=true}}
+];
+
+let state={coins:JSON.parse(JSON.stringify(COINS)),workers:0,prestige:0,prestigePoints:0,prestigeMult:1,shopMult:1,workerPower:0.06,totalMined:0,xp:0,level:1,lastSave:Date.now(),name:'CryptoBoss',usedCodes:{},purchased:{},isVip:false,startBonus:0};
+const WBASE=180,PBASE=5000;
+
+function fmt(n){if(n<1e3)return n.toFixed(n<10?1:0);if(n<1e6)return(n/1e3).toFixed(1)+'K';if(n<1e9)return(n/1e6).toFixed(1)+'M';if(n<1e12)return(n/1e9).toFixed(1)+'B';return(n/1e12).toFixed(1)+'T'}
+function rate(c){return c.baseRate*(1+c.level*.4)*(1+state.workers*state.workerPower)*state.prestigeMult*state.shopMult}
+function upCost(c){return Math.floor(c.baseCost*Math.pow(1.4,c.level))}
+function hireCost(){return Math.floor(WBASE*Math.pow(1.45,state.workers))}
+function totalRate(){return state.coins.reduce((s,c)=>s+rate(c),0)}
+function xpNeed(l){return Math.floor(80*Math.pow(1.35,l-1))}
+function prestReq(){return Math.floor(PBASE*Math.pow(2.5,state.prestige))}
+function prestPts(){const r=prestReq();return Math.max(1,Math.floor(1+Math.log2(Math.max(1,state.totalMined/r))*2+state.prestige*.5))}
+
+function tick(dt){const s=dt/1000;let g=0;state.coins.forEach(c=>{const a=rate(c)*s;c.amount+=a;g+=a});state.totalMined+=g;state.xp+=g*.9;while(state.xp>=xpNeed(state.level)){state.xp-=xpNeed(state.level);state.level++;showToast('Level Up! '+state.level)}update()}
+function upgradeCoin(id){const c=state.coins.find(x=>x.id===id);if(!c||c.amount<upCost(c)){showToast('Not enough');return}c.amount-=upCost(c);c.level++;showToast(c.name+' Lv.'+c.level);save();update()}
+function upgradeAll(){let any=false;state.coins.forEach(c=>{while(c.amount>=upCost(c)){c.amount-=upCost(c);c.level++;any=true}});if(any){showToast('Upgraded!');save();update()}else showToast('Need more coins')}
+function hireWorker(){const cost=hireCost(),btc=state.coins[3];if(btc.amount<cost){showToast('Need more BTC');return}btc.amount-=cost;state.workers++;showToast('Miner hired! ('+state.workers+')');save();update()}
+function doPrestige(){if(state.totalMined<prestReq()){showToast('Not ready');return}const pts=prestPts();if(!confirm('Prestige for +'+pts+' PP? Progress resets, permanent boosts stay.'))return;state.prestige++;state.prestigePoints+=pts;state.prestigeMult=1+state.prestige*.2;state.coins.forEach(c=>{c.amount=state.startBonus||0;c.level=0});state.workers=0;state.totalMined=0;showToast('Prestiged! +'+pts+' PP');save();update()}
+function buyPack(id){const p=IAP.find(x=>x.id===id);if(!p)return;if(!confirm('Buy '+p.name+' for '+p.price+'?\n(Simulated until Play Store)'))return;p.effect(state);state.purchased[id]=true;showToast(p.name+' unlocked!');save();update();openModal('shop')}
+function saveName(){state.name=document.getElementById('playerName').value||'CryptoBoss';save()}
+
+function update(){
+  // top amounts
+  document.getElementById('dogeAmt').textContent=fmt(state.coins[0].amount);
+  document.getElementById('usdtAmt').textContent=fmt(state.coins[1].amount);
+  document.getElementById('ethAmt').textContent=fmt(state.coins[2].amount);
+  document.getElementById('btcAmt').textContent=fmt(state.coins[3].amount);
+  document.getElementById('totalRate').textContent='$'+fmt(totalRate()*60)+'/min';
+  document.getElementById('multDisplay').textContent='x'+(state.prestigeMult*state.shopMult).toFixed(2);
+  document.getElementById('ppDisplay').textContent=state.prestigePoints;
+  document.getElementById('playerLevel').textContent=state.level;
+  document.getElementById('playerName').value=state.name;
+  if(state.isVip)document.getElementById('playerName').style.color='#f1c40f';
+  const need=xpNeed(state.level);
+  document.getElementById('xpText').textContent=fmt(state.xp)+' / '+fmt(need)+' XP';
+  document.getElementById('xpFill').style.width=Math.min(100,state.xp/need*100)+'%';
+
+  // rates grid
+  document.getElementById('ratesGrid').innerHTML=state.coins.map(c=>`
+    <div class="rate-box">
+      <div class="coin-name" style="color:${c.color}">${c.icon} ${c.name}</div>
+      <div class="rate">${fmt(rate(c))}/s • Lv.${c.level}</div>
+      <div class="amount" style="color:${c.color}">${fmt(c.amount)}</div>
+    </div>`).join('');
+
+  // miners visual
+  let m='';for(let i=0;i<Math.min(state.workers,10);i++)m+=`<div class="miner active"><div class="miner-head"><span class="miner-hat">⛑️</span>😊</div><div class="miner-body"></div></div>`;
+  if(state.workers===0)m='<div style="color:#7f8c8d;font-size:12px;padding:20px">Hire miners to start working...</div>';
+  document.getElementById('minersRow').innerHTML=m;
+  let d='';for(let i=0;i<Math.min(state.workers,8);i++)d+='<div class="desk"></div>';
+  document.getElementById('deskRow').innerHTML=d;
+
+  const cost=hireCost();
+  document.getElementById('hireBtn').innerHTML=`👷 Hire (${fmt(cost)} BTC)`;
+  document.getElementById('hireBtn').disabled=state.coins[3].amount<cost;
+  document.getElementById('hireInfo').textContent=`+${(state.workerPower*100).toFixed(0)}% speed per worker • Team: ${state.workers}`;
+  const req=prestReq();
+  const ready=state.totalMined>=req;
+  document.getElementById('prestigeBtn').disabled=!ready;
+  document.getElementById('prestigeBtn').textContent=ready?`🚀 Prestige (+${prestPts()} PP)`:`🚀 Need ${fmt(req-state.totalMined)} more`;
+}
+
+function showToast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(window.tt);window.tt=setTimeout(()=>t.classList.remove('show'),2200)}
+function openModal(type){
+  const box=document.getElementById('modalBox');let h='';
+  if(type==='shop'){
+    h=`<h2>🛒 Shop</h2><div class="notice">Purchases are simulated for testing. Real payments activate after Google Play launch.</div>`;
+    IAP.forEach(p=>{
+      const owned=state.purchased[p.id];
+      h+=`<div class="shop-item"><div class="si-info"><div class="si-name">${p.name}${p.best?' ⭐':''}</div><div class="si-desc">${p.desc}</div></div><button ${owned?'disabled':''} onclick="buyPack('${p.id}')">${owned?'Owned':p.price}</button></div>`;
+    });
+  }else if(type==='upgrade'){
+    h=`<h2>⬆️ Upgrade Coins</h2>`;
+    state.coins.forEach(c=>{
+      const cost=upCost(c),can=c.amount>=cost;
+      h+=`<div class="shop-item"><div class="si-info"><div class="si-name" style="color:${c.color}">${c.icon} ${c.name} Lv.${c.level}</div><div class="si-desc">${fmt(rate(c))}/s • Have ${fmt(c.amount)}</div></div><button ${can?'':'disabled'} onclick="upgradeCoin('${c.id}');openModal('upgrade')">${fmt(cost)}</button></div>`;
+    });
+  }else if(type==='codes'){
+    h=`<h2>🎟️ Promo Codes</h2><p>Enter a secret code (one-time use).</p><input id="codeIn" placeholder="CODE" style="width:100%;padding:12px;border-radius:8px;border:1px solid #34495e;background:#243044;color:#fff;font-size:15px;text-transform:uppercase;margin:8px 0"><button class="modal-close" style="background:#00b4d8;color:#000;margin:0" onclick="redeem()">Redeem</button>`;
+  }else if(type==='settings'){
+    h=`<h2>⚙️ Settings</h2><p>Progress saves on this device.</p><button class="modal-close" style="background:#e74c3c" onclick="if(confirm('Reset everything?')){localStorage.removeItem('hashEmpire');location.reload()}">Reset Progress</button>`;
+  }else if(type==='about'){
+    h=`<h2>ℹ️ Hash Empire</h2><p>Idle mining game. Hire workers, upgrade coins, prestige for permanent power.</p><p>Spend in the Shop to progress faster. Real payments coming with Google Play release.</p>`;
+  }
+  box.innerHTML=h+`<button class="modal-close" onclick="closeModal()">Close</button>`;
+  document.getElementById('modalBg').classList.add('show');
+}
+function closeModal(e){if(e&&e.target!==document.getElementById('modalBg'))return;document.getElementById('modalBg').classList.remove('show')}
+function redeem(){const code=(document.getElementById('codeIn')?.value||'').trim().toUpperCase();if(!code)return;const p=PROMO_CODES[code];if(!p){showToast('Invalid');return}if(state.usedCodes[code]){showToast('Already used');return}p.action(state);state.usedCodes[code]=true;showToast('Code redeemed!');save();update();closeModal()}
+function save(){state.lastSave=Date.now();localStorage.setItem('hashEmpire',JSON.stringify(state))}
+function load(){const r=localStorage.getItem('hashEmpire');if(!r)return;try{const s=JSON.parse(r);state={...state,...s};state.coins=COINS.map(b=>{const x=s.coins?.find(c=>c.id===b.id)||{};return{...b,...x}})}catch(e){}}
+function offline(){const d=Date.now()-(state.lastSave||Date.now());if(d<10000)return;const sec=Math.min(d/1000,172800);let g=0;state.coins.forEach(c=>{const a=rate(c)*sec;c.amount+=a;g+=a});state.totalMined+=g;state.xp+=g*.9;if(g>1){document.getElementById('modalBox').innerHTML=`<h2>Welcome Back!</h2><p>Away for a while</p><p style="font-size:22px;font-weight:800;color:#2ecc71">+$${fmt(g)}</p><button class="modal-close" onclick="closeModal()">Collect</button>`;document.getElementById('modalBg').classList.add('show')}save()}
+
+load();offline();update();
+let last=performance.now();function loop(n){tick(Math.min(n-last,60));last=n;requestAnimationFrame(loop)}requestAnimationFrame(loop);
+setInterval(save,12000);
+</script>
+</body>
+</html>
