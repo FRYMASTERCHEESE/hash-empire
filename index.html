@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Hash Empire</title>
+<style>
+:root{--bg:#121820;--card:#1c2530;--card2:#243040;--accent:#00c2ff;--green:#2ecc71;--orange:#f39c12;--purple:#9b59b6;--text:#eef2f7;--muted:#8b9aab;--border:#2e3a4a}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#0b1018;color:var(--text);min-height:100vh}
+.app{max-width:430px;margin:0 auto;min-height:100vh;background:linear-gradient(180deg,#151c28 0%,#0e141e 100%);padding-bottom:90px}
+
+/* Top */
+.top{background:#0c121a;padding:10px 12px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #1e2a3a;position:sticky;top:0;z-index:20}
+.curs{display:flex;gap:8px;font-size:12px;font-weight:700;flex-wrap:wrap}
+.curs span{opacity:.75}
+.top button{background:#1e2a3a;border:none;width:34px;height:34px;border-radius:8px;color:#fff;font-size:15px}
+
+/* Stats strip */
+.stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;padding:10px}
+.stat{background:var(--card);border-radius:10px;padding:8px;text-align:center;border:1px solid var(--border)}
+.stat .l{font-size:10px;color:var(--muted);text-transform:uppercase}
+.stat .v{font-size:14px;font-weight:800;color:var(--accent);margin-top:2px}
+
+/* Main room */
+.room{margin:0 10px 12px;background:linear-gradient(180deg,#1e2a3a 0%,#15202e 100%);border-radius:14px;border:1px solid #2a3a4e;padding:12px;position:relative;overflow:hidden}
+.room-title{font-size:12px;color:var(--muted);text-align:center;margin-bottom:8px}
+.miners{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;min-height:70px;margin-bottom:10px}
+.miner{width:52px;text-align:center}
+.miner .face{width:36px;height:36px;border-radius:50%;background:#e8c39e;margin:0 auto;display:flex;align-items:center;justify-content:center;font-size:18px;border:2px solid #d4a574;position:relative}
+.miner .hat{position:absolute;top:-10px;font-size:14px}
+.miner .name{font-size:9px;color:var(--muted);margin-top:2px}
+.miner.active .face{box-shadow:0 0 10px rgba(0,194,255,.4);animation:bob 1.4s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+
+.player-box{text-align:center;margin:8px 0}
+.p-avatar{width:64px;height:64px;border-radius:50%;border:3px solid var(--accent);background:#1a2433;display:flex;align-items:center;justify-content:center;font-size:32px;margin:0 auto;box-shadow:0 0 18px rgba(0,194,255,.35)}
+.p-name input{background:transparent;border:none;color:#fff;font-size:15px;font-weight:700;text-align:center;width:130px;outline:none;margin-top:4px}
+.p-meta{font-size:11px;color:var(--muted)}
+.xp{margin:6px 30px 0}
+.xp-bar{height:7px;background:#0f1620;border-radius:4px;overflow:hidden}
+.xp-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--purple));border-radius:4px;transition:width .3s}
+.xp-txt{font-size:10px;color:var(--muted);text-align:center;margin-top:2px}
+
+/* Coins */
+.coins{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 10px 10px}
+.coin{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px}
+.coin .top{display:flex;align-items:center;gap:6px;margin-bottom:6px;padding:0;border:none;background:none;position:static}
+.coin .icon{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px}
+.coin .n{font-weight:700;font-size:13px}
+.coin .r{font-size:10px;color:var(--muted)}
+.coin .amt{font-size:17px;font-weight:800;margin:4px 0 8px}
+.coin button{width:100%;padding:8px;border:none;border-radius:8px;background:linear-gradient(135deg,var(--accent),#0090c0);color:#000;font-weight:700;font-size:12px;cursor:pointer}
+.coin button:disabled{background:#2a3545;color:#6a7a8a}
+
+/* Actions */
+.actions{display:flex;gap:8px;padding:0 10px 12px;flex-wrap:wrap}
+.actions button{flex:1;min-width:110px;padding:12px;border:none;border-radius:10px;font-weight:700;font-size:13px;color:#fff;cursor:pointer}
+.btn-hire{background:linear-gradient(135deg,var(--purple),#6c3483)}
+.btn-prest{background:linear-gradient(135deg,var(--orange),#d35400)}
+.btn-skill{background:linear-gradient(135deg,#1abc9c,#16a085)}
+.actions button:disabled{opacity:.4}
+
+/* Bottom nav */
+.nav{position:fixed;bottom:0;left:0;right:0;background:#0c121a;border-top:1px solid #1e2a3a;display:flex;justify-content:space-around;padding:8px 4px 18px;max-width:430px;margin:0 auto;z-index:30}
+.nav button{background:none;border:none;color:#6a7a8a;font-size:10px;display:flex;flex-direction:column;align-items:center;gap:2px}
+.nav button.active{color:var(--accent)}
+.nav button span{font-size:20px}
+
+/* Modal */
+.mbg{position:fixed;inset:0;background:rgba(0,0,0,.8);display:none;align-items:flex-end;justify-content:center;z-index:50}
+.mbg.show{display:flex}
+.modal{background:var(--card);width:100%;max-width:430px;max-height:85vh;overflow-y:auto;border-radius:18px 18px 0 0;padding:18px;padding-bottom:30px}
+.modal h2{font-size:17px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
+.modal h2 .x{background:#2a3545;border:none;width:28px;height:28px;border-radius:50%;color:#fff;font-size:14px}
+.modal p{font-size:13px;color:var(--muted);margin-bottom:8px;line-height:1.4}
+.item{background:var(--card2);border-radius:10px;padding:12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.item .info{flex:1}
+.item .name{font-weight:700;font-size:13px}
+.item .desc{font-size:11px;color:var(--muted)}
+.item button{padding:8px 12px;border:none;border-radius:8px;background:linear-gradient(135deg,var(--green),#27ae60);color:#000;font-weight:800;font-size:12px;cursor:pointer;white-space:nowrap}
+.item button:disabled{background:#3a4555;color:#7a8a9a}
+.item button.orange{background:linear-gradient(135deg,var(--orange),#e67e22)}
+.notice{background:rgba(243,156,18,.12);border:1px solid rgba(243,156,18,.35);border-radius:8px;padding:8px;font-size:11px;color:var(--orange);margin-bottom:10px}
+.toast{position:fixed;top:14px;left:50%;transform:translateX(-50%) translateY(-80px);background:var(--card2);border:1px solid var(--accent);padding:10px 16px;border-radius:10px;font-size:13px;font-weight:600;z-index:100;transition:transform .3s;max-width:90%;text-align:center}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.mgr-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.mgr{background:var(--card2);border-radius:10px;padding:10px;text-align:center;border:1px solid var(--border)}
+.mgr .face{font-size:28px;margin-bottom:4px}
+.mgr .nm{font-size:12px;font-weight:700}
+.mgr .lv{font-size:10px;color:var(--muted)}
+.mgr .mul{font-size:13px;color:var(--accent);font-weight:800;margin:4px 0}
+.mgr button{width:100%;padding:6px;border:none;border-radius:6px;background:#2a3545;color:#fff;font-size:11px;font-weight:700;margin-top:4px}
+.mgr button:disabled{opacity:.5}
+.skill-node{display:flex;align-items:center;gap:10px;background:var(--card2);border-radius:10px;padding:10px;margin-bottom:8px}
+.skill-node .icon{width:40px;height:40px;border-radius:10px;background:#1a2433;display:flex;align-items:center;justify-content:center;font-size:20px}
+.skill-node .txt{flex:1}
+.skill-node .tn{font-weight:700;font-size:13px}
+.skill-node .td{font-size:11px;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="top">
+    <div class="curs">
+      <div>Ð <span id="dAmt">0</span></div>
+      <div>₮ <span id="uAmt">0</span></div>
+      <div>Ξ <span id="eAmt">0</span></div>
+      <div>₿ <span id="bAmt">0</span></div>
+    </div>
+    <button onclick="openModal('settings')">⚙️</button>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="l">/min</div><div class="v" id="perMin">$0</div></div>
+    <div class="stat"><div class="l">Prestige</div><div class="v" id="prestLv">0</div></div>
+    <div class="stat"><div class="l">Managers</div><div class="v" id="mgrCount">0</div></div>
+  </div>
+
+  <div class="room">
+    <div class="room-title">Mining Floor • <span id="workerCount">0</span> Workers</div>
+    <div class="miners" id="miners"></div>
+    <div class="player-box">
+      <div class="p-avatar">😎</div>
+      <div class="p-name"><input id="pName" value="CryptoBoss" maxlength="12" onchange="saveName()"></div>
+      <div class="p-meta">Level <span id="pLv">1</span> • Mult x<span id="totalMult">1.00</span></div>
+      <div class="xp"><div class="xp-bar"><div class="xp-fill" id="xpFill" style="width:0%"></div></div><div class="xp-txt" id="xpTxt">0/100</div></div>
+    </div>
+  </div>
+
+  <div class="coins" id="coins"></div>
+
+  <div class="actions">
+    <button class="btn-hire" id="hireBtn" onclick="hire()">👷 Hire Worker</button>
+    <button class="btn-prest" id="prestBtn" onclick="doPrestige()" disabled>🚀 Prestige</button>
+    <button class="btn-skill" onclick="openModal('skills')">🌳 Skill Tree</button>
+  </div>
+</div>
+
+<div class="nav">
+  <button class="active" onclick="showToast('Home')"><span>🏠</span>Home</button>
+  <button onclick="openModal('managers')"><span>👔</span>Managers</button>
+  <button onclick="openModal('shop')"><span>🛒</span>Shop</button>
+  <button onclick="openModal('codes')"><span>🎟️</span>Codes</button>
+  <button onclick="openModal('about')"><span>ℹ️</span>Info</button>
+</div>
+
+<div class="mbg" id="mbg" onclick="closeM(event)"><div class="modal" id="mbox"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const COINS=[
+  {id:'doge',name:'DOGE',icon:'Ð',color:'#c2a633',base:1.4,amt:0,lv:0,cost:10},
+  {id:'usdt',name:'USDT',icon:'₮',color:'#26a17b',base:0.55,amt:0,lv:0,cost:28},
+  {id:'eth',name:'ETH',icon:'Ξ',color:'#627eea',base:0.22,amt:0,lv:0,cost:85},
+  {id:'btc',name:'BTC',icon:'₿',color:'#f7931a',base:0.09,amt:0,lv:0,cost:320}
+];
+const MANAGERS=[
+  {id:'m1',name:'Alex',face:'👨‍💼',baseMult:0.08,lv:0,max:20,cost:50},
+  {id:'m2',name:'Sam',face:'👩‍💼',baseMult:0.10,lv:0,max:20,cost:80},
+  {id:'m3',name:'Jordan',face:'👨‍🔧',baseMult:0.12,lv:0,max:15,cost:150},
+  {id:'m4',name:'Riley',face:'👩‍🔬',baseMult:0.15,lv:0,max:15,cost:250},
+  {id:'m5',name:'Casey',face:'🧑‍💻',baseMult:0.18,lv:0,max:10,cost:400},
+  {id:'m6',name:'Quinn',face:'👨‍🚀',baseMult:0.22,lv:0,max:10,cost:700}
+];
+const SKILLS=[
+  {id:'s1',name:'Faster Mining',desc:'+10% global speed',icon:'⚡',cost:1,max:10,effect:s=>s.skillMult+=0.10},
+  {id:'s2',name:'Better Workers',desc:'+2% per worker',icon:'👷',cost:2,max:8,effect:s=>s.workerPower+=0.02},
+  {id:'s3',name:'Cheap Upgrades',desc:'-5% upgrade cost',icon:'💰',cost:2,max:6,effect:s=>s.costReduce+=0.05},
+  {id:'s4',name:'Prestige Power',desc:'+5% prestige mult',icon:'🚀',cost:3,max:5,effect:s=>s.prestBonus+=0.05},
+  {id:'s5',name:'Offline Boost',desc:'+20% offline earnings',icon:'🌙',cost:2,max:5,effect:s=>s.offlineMult+=0.20},
+  {id:'s6',name:'Manager Power',desc:'+8% manager effect',icon:'👔',cost:3,max:5,effect:s=>s.mgrPower+=0.08}
+];
+const PROMO={
+  HASHSTART:s=>s.coins.forEach(c=>c.amt+=120),
+  WELCOME:s=>{s.coins[0].amt+=500;s.workers+=3},
+  MINER2026:s=>s.coins.forEach(c=>c.amt+=1200),
+  DOGEKING:s=>s.coins[0].amt+=5000,
+  BTCHAUL:s=>s.coins[3].amt+=120,
+  PRESTIGE:s=>s.pp+=6,
+  TEAMWORK:s=>s.workers+=8,
+  EMPIRE:s=>{s.coins.forEach(c=>c.amt+=2500);s.pp+=5},
+  SECRET:s=>{s.coins.forEach(c=>c.amt+=600);s.workers+=5},
+  FRYMASTER:s=>{s.workers+=15;s.coins.forEach(c=>c.amt+=4000);s.pp+=10}
+};
+const IAP=[
+  {id:'p1',name:'Starter',desc:'12K each + 12 workers',price:'$4.99',effect:s=>{s.coins.forEach(c=>c.amt+=12000);s.workers+=12}},
+  {id:'p2',name:'Manager Pack',desc:'30 workers + 2 manager levels',price:'$9.99',effect:s=>{s.workers+=30;s.managers[0].lv=Math.min(s.managers[0].max,s.managers[0].lv+2);s.managers[1].lv=Math.min(s.managers[1].max,s.managers[1].lv+1)}},
+  {id:'p3',name:'Speed Pack',desc:'+40% permanent speed',price:'$14.99',effect:s=>{s.shopMult+=0.40}},
+  {id:'p4',name:'Whale',desc:'250K all + 60 workers + 30 PP',price:'$29.99',effect:s=>{s.coins.forEach(c=>c.amt+=250000);s.workers+=60;s.pp+=30}},
+  {id:'p5',name:'Empire',desc:'1.2M all + 100 workers + VIP',price:'$79.99',effect:s=>{s.coins.forEach(c=>c.amt+=1200000);s.workers+=100;s.pp+=80;s.shopMult+=0.30;s.vip=true}},
+  {id:'p6',name:'Legendary',desc:'6M all + 180 workers + +80% speed',price:'$149.99',effect:s=>{s.coins.forEach(c=>c.amt+=6000000);s.workers+=180;s.pp+=180;s.shopMult+=0.80;s.vip=true}}
+];
+
+let S={
+  coins:JSON.parse(JSON.stringify(COINS)),
+  managers:JSON.parse(JSON.stringify(MANAGERS)),
+  skills:{},
+  workers:0,prestige:0,pp:0,prestMult:1,shopMult:1,
+  workerPower:0.05,skillMult:1,costReduce:0,prestBonus:0,offlineMult:1,mgrPower:1,
+  totalMined:0,xp:0,level:1,lastSave:Date.now(),name:'CryptoBoss',
+  usedCodes:{},bought:{},vip:false,startBonus:0
+};
+SKILLS.forEach(sk=>S.skills[sk.id]=0);
+
+function fmt(n){if(n<1e3)return n.toFixed(n<10?1:0);if(n<1e6)return(n/1e3).toFixed(1)+'K';if(n<1e9)return(n/1e6).toFixed(1)+'M';if(n<1e12)return(n/1e9).toFixed(1)+'B';return(n/1e12).toFixed(1)+'T'}
+function mgrMult(){return 1+S.managers.reduce((a,m)=>a+(m.lv*m.baseMult*S.mgrPower),0)}
+function totalMult(){return S.prestMult*S.shopMult*S.skillMult*mgrMult()}
+function rate(c){return c.base*(1+c.lv*0.42)*(1+S.workers*S.workerPower)*totalMult()}
+function upCost(c){return Math.floor(c.cost*Math.pow(1.38,c.lv)*(1-S.costReduce))}
+function hireCost(){return Math.floor(160*Math.pow(1.42,S.workers))}
+function totalR(){return S.coins.reduce((a,c)=>a+rate(c),0)}
+function xpNeed(l){return Math.floor(75*Math.pow(1.32,l-1))}
+function prestReq(){return Math.floor(4500*Math.pow(2.4,S.prestige))}
+function prestPts(){const r=prestReq();return Math.max(1,Math.floor(1+Math.log2(Math.max(1,S.totalMined/r))*2.2+S.prestige*0.5))}
+
+function tick(dt){const s=dt/1000;let g=0;S.coins.forEach(c=>{const a=rate(c)*s;c.amt+=a;g+=a});S.totalMined+=g;S.xp+=g*0.9;while(S.xp>=xpNeed(S.level)){S.xp-=xpNeed(S.level);S.level++;toast('Level Up! '+S.level)}ui()}
+function upgrade(id){const c=S.coins.find(x=>x.id===id);if(!c||c.amt<upCost(c)){toast('Not enough');return}c.amt-=upCost(c);c.lv++;toast(c.name+' Lv.'+c.lv);save();ui()}
+function hire(){const cost=hireCost(),btc=S.coins[3];if(btc.amt<cost){toast('Need more BTC');return}btc.amt-=cost;S.workers++;toast('Worker hired! ('+S.workers+')');save();ui()}
+function doPrestige(){if(S.totalMined<prestReq()){toast('Not ready');return}const pts=prestPts();if(!confirm('Prestige for +'+pts+' PP?\nKeep: Managers, Skills, Shop upgrades'))return;S.prestige++;S.pp+=pts;S.prestMult=1+S.prestige*(0.18+S.prestBonus);S.coins.forEach(c=>{c.amt=S.startBonus||0;c.lv=0});S.workers=0;S.totalMined=0;toast('Prestiged! +'+pts+' PP');save();ui()}
+function buyMgr(id){const m=S.managers.find(x=>x.id===id);if(!m||m.lv>=m.max)return;const cost=Math.floor(m.cost*Math.pow(1.55,m.lv));if(S.pp<cost){toast('Need more PP');return}S.pp-=cost;m.lv++;toast(m.name+' upgraded!');save();ui();openModal('managers')}
+function buySkill(id){const sk=SKILLS.find(x=>x.id===id);if(!sk)return;const lv=S.skills[id]||0;if(lv>=sk.max){toast('Maxed');return}const cost=sk.cost*(lv+1);if(S.pp<cost){toast('Need more PP');return}S.pp-=cost;S.skills[id]=lv+1;sk.effect(S);toast(sk.name+' upgraded!');save();ui();openModal('skills')}
+function buyIAP(id){const p=IAP.find(x=>x.id===id);if(!p)return;if(!confirm('Buy '+p.name+' for '+p.price+'?\n(Simulated until Play Store)'))return;p.effect(S);S.bought[id]=true;toast(p.name+' unlocked!');save();ui();openModal('shop')}
+function saveName(){S.name=document.getElementById('pName').value||'CryptoBoss';save()}
+
+function ui(){
+  document.getElementById('dAmt').textContent=fmt(S.coins[0].amt);
+  document.getElementById('uAmt').textContent=fmt(S.coins[1].amt);
+  document.getElementById('eAmt').textContent=fmt(S.coins[2].amt);
+  document.getElementById('bAmt').textContent=fmt(S.coins[3].amt);
+  document.getElementById('perMin').textContent='$'+fmt(totalR()*60);
+  document.getElementById('prestLv').textContent=S.prestige;
+  document.getElementById('mgrCount').textContent=S.managers.reduce((a,m)=>a+m.lv,0);
+  document.getElementById('workerCount').textContent=S.workers;
+  document.getElementById('pLv').textContent=S.level;
+  document.getElementById('pName').value=S.name;
+  document.getElementById('totalMult').textContent=totalMult().toFixed(2);
+  if(S.vip)document.getElementById('pName').style.color='#f1c40f';
+  const need=xpNeed(S.level);
+  document.getElementById('xpTxt').textContent=fmt(S.xp)+'/'+fmt(need);
+  document.getElementById('xpFill').style.width=Math.min(100,S.xp/need*100)+'%';
+
+  let mhtml='';for(let i=0;i<Math.min(S.workers,12);i++)mhtml+=`<div class="miner active"><div class="face"><span class="hat">⛑️</span>😊</div><div class="name">Miner</div></div>`;
+  if(S.workers===0)mhtml='<div style="color:var(--muted);font-size:12px;padding:16px">Hire workers to fill the floor</div>';
+  document.getElementById('miners').innerHTML=mhtml;
+
+  document.getElementById('coins').innerHTML=S.coins.map(c=>{
+    const cost=upCost(c),can=c.amt>=cost;
+    return `<div class="coin"><div class="top"><div class="icon" style="background:${c.color}22;color:${c.color}">${c.icon}</div><div><div class="n">${c.name}</div><div class="r">${fmt(rate(c))}/s • Lv.${c.lv}</div></div></div><div class="amt" style="color:${c.color}">${fmt(c.amt)}</div><button ${can?'':'disabled'} onclick="upgrade('${c.id}')">Upgrade • ${fmt(cost)}</button></div>`;
+  }).join('');
+
+  const hc=hireCost();
+  document.getElementById('hireBtn').textContent=`👷 Hire (${fmt(hc)} BTC)`;
+  document.getElementById('hireBtn').disabled=S.coins[3].amt<hc;
+  const req=prestReq(),ready=S.totalMined>=req;
+  document.getElementById('prestBtn').disabled=!ready;
+  document.getElementById('prestBtn').textContent=ready?`🚀 Prestige (+${prestPts()} PP)`:`🚀 Need ${fmt(req-S.totalMined)}`;
+}
+
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(window.tt);window.tt=setTimeout(()=>t.classList.remove('show'),2200)}
+function openModal(type){
+  const box=document.getElementById('mbox');let h='';
+  if(type==='managers'){
+    h=`<h2>👔 Managers <button class="x" onclick="closeM()">✕</button></h2><p>Managers give permanent multipliers. Upgrade with Prestige Points (PP: <strong>${S.pp}</strong>)</p><div class="mgr-grid">`;
+    S.managers.forEach(m=>{
+      const cost=Math.floor(m.cost*Math.pow(1.55,m.lv));
+      const maxed=m.lv>=m.max;
+      h+=`<div class="mgr"><div class="face">${m.face}</div><div class="nm">${m.name}</div><div class="lv">Lv.${m.lv}/${m.max}</div><div class="mul">x${(1+m.lv*m.baseMult*S.mgrPower).toFixed(2)}</div><button ${maxed||S.pp<cost?'disabled':''} onclick="buyMgr('${m.id}')">${maxed?'MAX':cost+' PP'}</button></div>`;
+    });
+    h+=`</div>`;
+  }else if(type==='skills'){
+    h=`<h2>🌳 Skill Tree <button class="x" onclick="closeM()">✕</button></h2><p>Spend Prestige Points (PP: <strong>${S.pp}</strong>) for permanent bonuses.</p>`;
+    SKILLS.forEach(sk=>{
+      const lv=S.skills[sk.id]||0,cost=sk.cost*(lv+1),maxed=lv>=sk.max;
+      h+=`<div class="skill-node"><div class="icon">${sk.icon}</div><div class="txt"><div class="tn">${sk.name} (${lv}/${sk.max})</div><div class="td">${sk.desc}</div></div><button ${maxed||S.pp<cost?'disabled':''} style="padding:8px 12px;border:none;border-radius:8px;background:linear-gradient(135deg,#1abc9c,#16a085);color:#000;font-weight:800;font-size:12px" onclick="buySkill('${sk.id}')">${maxed?'MAX':cost+' PP'}</button></div>`;
+    });
+  }else if(type==='shop'){
+    h=`<h2>🛒 Shop <button class="x" onclick="closeM()">✕</button></h2><div class="notice">Purchases simulated for testing. Real payments after Google Play launch.</div>`;
+    IAP.forEach(p=>{
+      const owned=S.bought[p.id];
+      h+=`<div class="item"><div class="info"><div class="name">${p.name}</div><div class="desc">${p.desc}</div></div><button ${owned?'disabled':''} onclick="buyIAP('${p.id}')">${owned?'Owned':p.price}</button></div>`;
+    });
+  }else if(type==='codes'){
+    h=`<h2>🎟️ Codes <button class="x" onclick="closeM()">✕</button></h2><p>Enter a secret promo code (one use).</p><input id="codeIn" placeholder="CODE" style="width:100%;padding:12px;border-radius:8px;border:1px solid #2e3a4a;background:#1a2433;color:#fff;font-size:15px;text-transform:uppercase;margin:8px 0"><button style="width:100%;padding:12px;border:none;border-radius:8px;background:var(--accent);color:#000;font-weight:800" onclick="redeem()">Redeem</button>`;
+  }else if(type==='settings'){
+    h=`<h2>⚙️ Settings <button class="x" onclick="closeM()">✕</button></h2><p>Progress saves on this device.</p><button style="width:100%;padding:12px;border:none;border-radius:8px;background:#e74c3c;color:#fff;font-weight:700;margin-top:8px" onclick="if(confirm('Reset all?')){localStorage.removeItem('hashEmpire2');location.reload()}">Reset Progress</button>`;
+  }else if(type==='about'){
+    h=`<h2>ℹ️ Hash Empire <button class="x" onclick="closeM()">✕</button></h2><p>Idle crypto miner with Workers, Managers, Skill Tree and Prestige.</p><p>Spend in the Shop to progress faster. Real payments coming with Google Play release.</p>`;
+  }
+  box.innerHTML=h;
+  document.getElementById('mbg').classList.add('show');
+}
+function closeM(e){if(e&&e.target!==document.getElementById('mbg')&&!e.target.classList.contains('x'))return;document.getElementById('mbg').classList.remove('show')}
+function redeem(){const code=(document.getElementById('codeIn')?.value||'').trim().toUpperCase();if(!code)return;const fn=PROMO[code];if(!fn){toast('Invalid');return}if(S.usedCodes[code]){toast('Already used');return}fn(S);S.usedCodes[code]=true;toast('Code redeemed!');save();ui();closeM()}
+function save(){S.lastSave=Date.now();localStorage.setItem('hashEmpire2',JSON.stringify(S))}
+function load(){const r=localStorage.getItem('hashEmpire2');if(!r)return;try{const s=JSON.parse(r);Object.assign(S,s);S.coins=COINS.map(b=>{const x=s.coins?.find(c=>c.id===b.id)||{};return{...b,...x}});S.managers=MANAGERS.map(b=>{const x=s.managers?.find(m=>m.id===b.id)||{};return{...b,...x}});if(!S.skills)S.skills={}}catch(e){}}
+function offline(){const d=Date.now()-(S.lastSave||Date.now());if(d<10000)return;const sec=Math.min(d/1000,172800)*S.offlineMult;let g=0;S.coins.forEach(c=>{const a=rate(c)*sec;c.amt+=a;g+=a});S.totalMined+=g;S.xp+=g*0.9;if(g>1){document.getElementById('mbox').innerHTML=`<h2>Welcome Back!</h2><p style="font-size:22px;font-weight:800;color:var(--green)">+$${fmt(g)}</p><button style="width:100%;padding:12px;border:none;border-radius:8px;background:var(--accent);color:#000;font-weight:800;margin-top:10px" onclick="closeM()">Collect</button>`;document.getElementById('mbg').classList.add('show')}save()}
+
+load();offline();ui();
+let last=performance.now();function loop(n){tick(Math.min(n-last,50));last=n;requestAnimationFrame(loop)}requestAnimationFrame(loop);
+setInterval(save,10000);
+</script>
+</body>
+</html>
